@@ -1,6 +1,8 @@
 # The minimalistic rouziclib-based picture viewer
 A minimalistic picture viewer that shows how to make a simple program using [rouziclib](https://github.com/Photosounder/rouziclib). The entire code that is specific to the image viewer is contained in the function `image_viewer()`, the rest is generic and can serve as the basis for any other program. In the future I might make a more fully featured version in parallel to the minimalistic one, with threaded loading and other useful features.
 
+If you'd like to just use it download the latest binary (Windows only) [here](https://github.com/Photosounder/rouziclib-picture-viewer/releases).
+
 ### Features
 As you can figure from reading the code of `image_viewer()` the only features present that are specific to this function are loading an image from the command-line argument (which is how you can double click on a file and have this viewer open it directly), loading an image from drag-and-drop onto the window, loading the previous or next image in the image's current folder either with the arrow keys or the mouse scroll. The loading isn't threaded, which sucks for large images, but I didn't want to complicate this minimalistic example with threading, that will come later. There is also a knob for what I call "parabolic gain", this both demonstrates the elegance of the markup-based GUI system of rouziclib as well as the sophistication of its drawing queue and OpenCL-based graphics system.
 
