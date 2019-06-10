@@ -20,10 +20,10 @@ void image_viewer()
 	make_gui_layout(&layout, layout_src, sizeof(layout_src)/sizeof(char *), "Image viewer");
 
 	// Draw image
-	drawq_bracket_open(fb);
-	blit_mipmap_in_rect(&fb, image_mm, sc_rect(make_rect_off(XY0, mul_xy(zc.limit_u, set_xy(2.)), xy(0.5, 0.5))), 1, LINEAR_INTERP);	// the mipmap image is fitted inside a rectangle that represents the default view
-	draw_gain_parabolic(fb, gain);		// the brackets make the parabolic gain effect only be applied to the mipmap
-	drawq_bracket_close(fb, DQB_ADD);
+	drawq_bracket_open();
+	blit_mipmap_in_rect(image_mm, sc_rect(make_rect_off(XY0, mul_xy(zc.limit_u, set_xy(2.)), xy(0.5, 0.5))), 1, LINEAR_INTERP);	// the mipmap image is fitted inside a rectangle that represents the default view
+	draw_gain_parabolic(gain);		// the brackets make the parabolic gain effect only be applied to the mipmap
+	drawq_bracket_close(DQB_ADD);
 
 	// GUI window
 	static flwindow_t window={0};
@@ -113,10 +113,10 @@ void main_loop()
 		fb.use_drawq = 0;
 		#endif
 		fb.r.use_frgb = fb.use_drawq;
-		sdl_graphics_init_autosize(&fb, "Mini rouziclib Picture Viewer", SDL_WINDOW_RESIZABLE, 0);
+		sdl_graphics_init_autosize("Mini rouziclib Picture Viewer", SDL_WINDOW_RESIZABLE, 0);
 		SDL_MaximizeWindow(fb.window);
 
-		zc = init_zoom(&fb, &mouse, drawing_thickness);
+		zc = init_zoom(&mouse, drawing_thickness);
 		calc_screen_limits(&zc);
 		mouse = init_mouse();
 
@@ -136,7 +136,7 @@ void main_loop()
 
 		mouse_pre_event_proc(&mouse);
 		keyboard_pre_event_proc(&mouse);
-		sdl_handle_window_resize(&fb, &zc);
+		sdl_handle_window_resize(&zc);
 
 		while (SDL_PollEvent(&event))
 		{
