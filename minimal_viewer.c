@@ -7,19 +7,31 @@ void image_viewer()
 	static char *path=NULL, dir_path[PATH_MAX*4]={0}, **filepath=NULL;
 	static int file_index=0, filecount=0;
 	static mipmap_t image_mm={0};
+	static double gain=NAN;
 
 	// GUI layout (so far just one knob under the image)
 	static gui_layout_t layout={0};
 	const char *layout_src[] = {
-		"elem 10", "type knob", "label Gain", "knob 0.01 1 1000 log", "pos	0	-9;4", "dim	2	2", "off	0;6	1", "",	
+		"elem 0", "type none", "label Options", "pos	0	0", "dim	3	3;6", "off	0	1", "",
+		"elem 10", "type knob", "label Gain", "knob 0.01 1 1000 log", "pos	0;6	-3", "dim	2", "off	0	0", "",
 	};
 
-	layout.sm = 1.;
+	gui_layout_init_pos_scale(&layout, xy(zc.limit_u.x+0.25, 8.), 0.7, XY0, 0);
 	make_gui_layout(&layout, layout_src, sizeof(layout_src)/sizeof(char *), "Image viewer");
 
+	// Draw image
+	drawq_bracket_open(fb);
+	blit_mipmap_in_rect(&fb, image_mm, sc_rect(make_rect_off(XY0, mul_xy(zc.limit_u, set_xy(2.)), xy(0.5, 0.5))), 1, LINEAR_INTERP);	// the mipmap image is fitted inside a rectangle that represents the default view
+	draw_gain_parabolic(fb, gain);		// the brackets make the parabolic gain effect only be applied to the mipmap
+	drawq_bracket_close(fb, DQB_ADD);
+
+	// GUI window
+	static flwindow_t window={0};
+	flwindow_init_defaults(&window);
+	draw_dialog_window_fromlayout(&window, NULL, &layout, 0);	// this handle and displays the window that contains the control
+
 	// GUI controls
-	static double gain=NAN;
-	ctrl_knob_fromlayout(&gain, &layout, 10);	// this both displays the control and updates the gain value
+	ctrl_knob_fromlayout(&gain, &layout, 10);			// this both displays the control and updates the gain value
 
 	if (init)
 	{
@@ -83,11 +95,6 @@ void image_viewer()
 	}
 
 	free_null(&path);
-
-	drawq_bracket_open(fb);
-	blit_mipmap_in_rect(&fb, image_mm, sc_rect(make_rect_off(XY0, mul_xy(zc.limit_u, set_xy(2.)), xy(0.5, 0.5))), 1, LINEAR_INTERP);	// the mipmap image is fitted inside a rectangle that represents the default view
-	draw_gain_parabolic(fb, gain);		// the brackets make the parabolic gain effect only be applied to the mipmap
-	drawq_bracket_close(fb, DQB_ADD);
 }
 
 void main_loop()
