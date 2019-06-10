@@ -19,20 +19,7 @@ void image_viewer()
 	gui_layout_init_pos_scale(&layout, xy(zc.limit_u.x+0.25, 8.), 0.7, XY0, 0);
 	make_gui_layout(&layout, layout_src, sizeof(layout_src)/sizeof(char *), "Image viewer");
 
-	// Draw image
-	drawq_bracket_open();
-	blit_mipmap_in_rect(image_mm, sc_rect(make_rect_off(XY0, mul_xy(zc.limit_u, set_xy(2.)), xy(0.5, 0.5))), 1, LINEAR_INTERP);	// the mipmap image is fitted inside a rectangle that represents the default view
-	draw_gain_parabolic(gain);		// the brackets make the parabolic gain effect only be applied to the mipmap
-	drawq_bracket_close(DQB_ADD);
-
-	// GUI window
-	static flwindow_t window={0};
-	flwindow_init_defaults(&window);
-	draw_dialog_window_fromlayout(&window, NULL, &layout, 0);	// this handle and displays the window that contains the control
-
-	// GUI controls
-	ctrl_knob_fromlayout(&gain, &layout, 10);			// this both displays the control and updates the gain value
-
+	// Getting an image path from the command line
 	if (init)
 	{
 		// Open argv[1] if present
@@ -45,8 +32,9 @@ void image_viewer()
 		init = 0;
 	}
 
+	// Getting an image path from drag and drop
 	if (dropfile_get_count())
-		path = dropfile_pop_first();		// open a file from drag and drop
+		path = dropfile_pop_first();
 
 	// Load the next or previous image (not threaded)
 	int way = (mouse.key_state[RL_SCANCODE_RIGHT]>=2) - (mouse.key_state[RL_SCANCODE_LEFT]>=2);	// the left and right arrow keys change images
@@ -95,6 +83,20 @@ void image_viewer()
 	}
 
 	free_null(&path);
+
+	// Draw image
+	drawq_bracket_open();
+	blit_mipmap_in_rect(image_mm, sc_rect(make_rect_off(XY0, mul_xy(zc.limit_u, set_xy(2.)), xy(0.5, 0.5))), 1, LINEAR_INTERP);	// the mipmap image is fitted inside a rectangle that represents the default view
+	draw_gain_parabolic(gain);		// the brackets make the parabolic gain effect only be applied to the mipmap
+	drawq_bracket_close(DQB_ADD);
+
+	// GUI window
+	static flwindow_t window={0};
+	flwindow_init_defaults(&window);
+	draw_dialog_window_fromlayout(&window, NULL, &layout, 0);	// this handles and displays the window that contains the control
+
+	// GUI controls
+	ctrl_knob_fromlayout(&gain, &layout, 10);			// this both displays the control and updates the gain value
 }
 
 void main_loop()
