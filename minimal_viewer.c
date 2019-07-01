@@ -160,6 +160,7 @@ void main_loop()
 		//-------------input-----------------
 
 		image_viewer();
+		dialog_cl_gl_interop_options(xy(zc.limit_u.x+0.25, 2.), 0.75);
 
 		mousecursor_logic_and_draw();
 
