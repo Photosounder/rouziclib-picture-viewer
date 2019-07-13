@@ -37,7 +37,7 @@ void image_viewer()
 		path = dropfile_pop_first();
 
 	// Load the next or previous image (not threaded)
-	int way = (mouse.key_state[RL_SCANCODE_RIGHT]>=2) - (mouse.key_state[RL_SCANCODE_LEFT]>=2);	// the left and right arrow keys change images
+	int way = ((mouse.key_state[RL_SCANCODE_RIGHT]>=2) - (mouse.key_state[RL_SCANCODE_LEFT]>=2)) * (cur_textedit==NULL);	// the left and right arrow keys change images
 
 	if (way==0 && mouse.b.wheel && mouse.zoom_flag==0)						// the scroll wheel when not in zoom mode does that too
 		way = -mouse.b.wheel / abs(mouse.b.wheel);
@@ -160,7 +160,6 @@ void main_loop()
 		//-------------input-----------------
 
 		image_viewer();
-		dialog_cl_gl_interop_options(xy(zc.limit_u.x+0.25, 2.), 0.75);
 
 		mousecursor_logic_and_draw();
 
