@@ -93,7 +93,7 @@ void image_viewer()
 	// GUI window
 	static flwindow_t window={0};
 	flwindow_init_defaults(&window);
-	draw_dialog_window_fromlayout(&window, NULL, &layout, 0);	// this handles and displays the window that contains the control
+	draw_dialog_window_fromlayout(&window, NULL, NULL, &layout, 0);	// this handles and displays the window that contains the control
 
 	// GUI controls
 	ctrl_knob_fromlayout(&gain, &layout, 10);			// this both displays the control and updates the gain value
