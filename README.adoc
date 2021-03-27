@@ -1,0 +1,311 @@
+== The minimalistic rouziclib-based picture viewer
+
+A minimalistic picture viewer that shows how to make a simple program
+using https://github.com/Photosounder/rouziclib[rouziclib]. The entire
+code that is specific to the image viewer is contained in the function
+`image_viewer()`, the rest is generic and can serve as the basis for any
+other program. In the future I might make a more fully featured version
+in parallel to the minimalistic one, with threaded loading and other
+useful features.
+
+If you'd like to just use it download the latest binary (Windows only)
+https://github.com/Photosounder/rouziclib-picture-viewer/releases[here].
+
+:imagesdir: img
+image::screenshot1.png[screenshot1.png,float="right",align="center"]
+
+=== Features
+
+As you can figure from reading the code of `image_viewer()` the only
+features present that are specific to this function are loading an image
+from the command-line argument (which is how you can double click on a
+file and have this viewer open it directly), loading an image from
+drag-and-drop onto the window and loading the previous or next image in
+the image's current folder either with the arrow keys or the mouse
+scroll. The loading isn't threaded, which sucks for large images, but I
+didn't want to complicate this minimalistic example with threading, that
+will come later. There is also a window that contains a knob for what I
+call "parabolic gain", this both demonstrates the elegance of the
+markup-based GUI system of rouziclib as well as the sophistication of
+its drawing queue and OpenCL-based graphics system.
+
+==== Image features
+
+What's more interesting is the features inherent to rouziclib. Images in
+JPG, PNG, TIFF or even PSD formats can be loaded with no external
+dependencies, in 8, 16 or 32-bit per channel. They are then internally
+turned from a naive and simple raster format to a tiled mipmap
+structure. What this means is that if you load an image that is 20,000 x
+13,000 pixels, the GPU will never have to struggle with the whole
+picture, instead it will only deal with the few 512 x 512 px tiles of
+the correct zoom level that it currently needs to display, with
+everything nicely antialiased. As it is the format specified is
+`IMAGE_USE_SQRGB`, a https://photosounder.com/michel_rouzic/#sqrgb[10 to
+12-bit per channel format], which is fast and good enough but could
+easily be switched to `IMAGE_USE_FRGB`, a 32-bit float per channel
+format which conserves the full quality and range (even out of range
+values) of the original image.
+
+==== Display features
+
+In rouziclib's OpenCL graphics system every pixel is computed in
+isolation on the GPU from a list of tasks (the drawing queue) which
+allows for interesting features such as "brackets" which function as an
+equivalent of brackets in mathematics, so in the case of applying
+parabolic gain to boost the brightness, only what was drawn inside the
+bracket, in this case the image's tiles, are affected, while the rest of
+the interface elements are untouched. The intermediary pixel values are
+in 32-bit floating point format, but they are never saved to memory as
+such. Instead at the end of a single pixel's processing the pixel value
+is converted to 8-bit sRGB with a subtle random dynamic Gaussian
+dithering applied. That dithering, which changes every frame, 60+ frames
+per second, effectively gives us a visual colour bit depth superior to
+the 8 bits our graphic cards and monitors give us. So if you load a 16
+or 32-bit per channel image you will be able to enjoy the lack of
+banding and superior colour precision that you would expect if our
+computers and software were capable of higher bit depths.
+
+==== Zooming
+
+You'll notice that there seemingly is no zooming function implemented.
+There's simply no need for that, everything zooms, the image together
+with the interface elements. Everything is on a quasi-infinite plane
+onto which your screen is a movable window. Just click the middle mouse
+button (or Alt-Z) to enter or exit the mouse zoom-scroll mode, long
+press (0.5 second) the middle mouse button (or press Shift-Alt-Z) to
+reset to the default view. This zoom-scroll mode makes your mouse cursor
+be locked in the middle of the window while the mouse moves the whole
+view, and the mouse wheel zooms in or out (Alt-Q and Alt-E). This is a
+superior approach to anything else, mostly for viewing large images or
+large amounts of data, and generally for editing.
+
+I wouldn't want to see a web browser based on this, but serious editing
+programs would do well to copy this. The downside is that it makes large
+images almost disappointing. Typically you would be setting zoom levels
+using a zoom mouse cursor (what a stupid idea) or a zoom slide, and then
+struggle either with scroll bars or a hand mouse cursor that would only
+allow you to scroll one fraction of your window's size at a time (such
+ideas inherited from the 1980s really need to die), that made exploring
+a large image an adventure, a painful one, but an adventure nonetheless.
+By being able to quickly and painlessly zoom as far as needed and scroll
+endlessly (you can take your mouse for a walk and it will keep on
+scrolling continuously and endlessly across the image as it drags on the
+ground), you quickly feel like what you used to consider overkill
+resolution (by virtue of being much higher than your screen's
+resolution) is actually not that deep nor detailed, you want to keep
+zooming in onto details only to find that even your 30,000 x 20,000
+image isn't as detailed as you'd like. Either way this means that this
+humble viewer is the best way to dive into highly detailed images, even
+if they ultimately leave you underwhelmed.
+
+==== Interface features
+
+Now that I've explained how the mouse zoom-scroll mode works, we can use
+it to have a look at the window I hid to the right of the image display
+area. When you see it click onto the pin control in the upper left
+corner of the window, it will make the window keep its current position
+and size on the screen, place the window wherever you want with whatever
+size you want and it will follow you as you move around or zoom in and
+out. This window contains a knob that controls the brightness, but let's
+talk about the control itself and its features. Click on it and move the
+mouse up or down, it changes the value, and while we're at it please
+notice how the image's brightness is corrected utterly smoothly and
+instantaneously (thanks to it being calculated in real time using the
+drawing queue system outlines earlier). But notice how your mouse cursor
+disappears. I don't know why I've never seen anyone else do this, it
+allows you move the control endlessly, without having to worry about the
+edges of the window or screen getting in the way. It's tempting to call
+me a genius, but why can't other people also find such simple solutions
+to such basic problems? You can hold the Shift key to make it change the
+value more slowly, and even throw in the Ctrl key to slow it even
+further. And here's what I guess is yet another reason to call me a
+genius, if you hold the Alt key and move the mouse slightly, the value
+will increase at a steady and smooth rate that varies depending on how
+you move the mouse (and you can also use Shift and Ctrl to make that
+change more slowly). Double clicking resets to the default value, and
+right clicking allows you to type in a value, but this isn't all, you
+can type mathematical formulas such as "sqrt 2" or "pi/3" (thanks to my
+fellow genius who made https://github.com/codeplea/tinyexpr/[TinyExpr])
+and have infinite undo/redo (Ctrl-Z to undo, Ctrl-Y or Shift-Ctrl-Z to
+redo). Not that this is really needed for this humble brightness
+control, but it's there everytime you make a knob control.
+
+You might notice the very minimalistic vector typeface used there, it's
+minimalistic because it's rouziclib's builtin fallback typeface, because
+it's always nice to be able to display text without having to do
+anything for it. The program actually first tries to load the more
+detailed and extensive version of my
+https://github.com/Photosounder/rouziclib/tree/master/vector_type[vector_type],
+but since it's not there to be found (unless you put it there) then it
+defaults to
+https://github.com/Photosounder/rouziclib/blob/master/rouziclib/vector_type/fallback_font.h[this
+version] contained in a header. In Photosounder 1.10 I pack the whole
+typeface (minus the CJK data) into a single
+https://github.com/Photosounder/rouziclib/blob/master/vector_type/header/vector_type_fileball.h[C
+header] that contains a compressed "fileball" (like a tarball except
+nicer and simpler) which extracts all the files where they're expected.
+More on that when I do a fancier version of this viewer.
+
+=== Coding aspects
+
+==== Dependencies and compilation
+
+We have `minimal_viewer.c` which contains the meat of the program, and
+we also have `rl.c` and `rl.h`. You could put the contents of both of
+these files at the top of `minimal_viewer.c`, but then you'd have to
+recompile all of rouziclib everytime you change something in the
+viewer's code. By having `rl.c` the library has its own separate
+reusable compiler object which speeds things up. Just in case it's not
+clear, rouziclib doesn't need to be precompiled and then linked nor even
+added to a project, the includes in those two files are all you need.
+
+Now when it comes to including rouziclib, by default rouziclib requires
+no dependencies, you can make a Hello World program and include the two
+main rouziclib files and not have to change anything to your compilation
+options (except perhaps when compiling with MinGW as explained in
+`rouziclib.h`). This is changed by the defines in `rl.h` which add
+dependencies. Here we need SDL2 which handles the display, mouse and
+keyboard input, and we also use OpenCL/OpenGL to have our
+GPU-accelerated graphics. But that's optional, if we remove those
+defines it will still compile fine and use software rendering instead,
+it will just be more laggy, also images wouldn't display because I
+haven't implemented `IMAGE_USE_SQRGB` displaying in software-only mode.
+
+So with those dependencies we need the SDL2 library and headers, and
+thanks to https://github.com/martijnberger/clew[clew] we don't need
+anything OpenCL-related. On Windows the necessary .lib files are already
+specified in the code using `#pragma` statements, so you just have to
+worry about specifying the paths to the headers and .lib files. So edit
+the .vcxproj file in a text editor and replace every instance of
+`E:\VC_libs\` with your paths to where SDL2 and rouziclib are to be
+found. When it's compiled you only need to add `SDL2.dll`, we don't need
+the GLEW DLL since in my boundless genius I built into rouziclib a
+drastically cut-down version of GLEW with only the things rouziclib
+needs. On macOS I guess you only need to add `SDL2.framework` and
+`OpenCL.framework`, and probably some of the other frameworks that come
+with the system.
+
+==== How the program is structured
+
+Let's start from `main()` and work our way up. All the code is adapted
+from a large project where I prototype everything, and since I once made
+it compatible with Emscripten (so that it could be compiled to
+JavaScript and be ran in a browser), I kept those aspects. Since
+Emscripten requires that you define a function as a callback instead of
+having one main function that runs without interuption from beginning to
+end, it works both ways. When we're not using Emscripten we have in
+`main_loop()` the initialisation of the framebuffer structure, SDL
+system and window, the initialisation of everything related to the mouse
+zoom-scroll system and the loading of the typeface, and then we have the
+main loop. The input handling is rather self-explanatory but you
+wouldn't want to dive into what it does either, you can just take it for
+granted. Note that we refer to the Return key as `RL_SCANCODE_RETURN`,
+which is just the same thing as `SDL_SCANCODE_RETURN` (which is itself
+based on some standard USB keyboard scancodes), the difference is that I
+can put such things all over rouziclib without having to worry about
+whether SDL2 is included or not. Then we have the call to
+`image_viewer()`, the window manager which runs window functions like
+the one that displays the "Options" window, the mouse cursor drawing,
+and then the framebuffer "flip" which is actually when we get everything
+rendered and displayed on the screen.
+
+==== The GUI layout
+
+I spent years working on a GUI layout system that I can be proud of, so
+let's look at how it works in `image_viewer()`. The `layout` structure
+is what stores everything you need, it stores each interface element,
+and for each interface element it stores all the data that define it,
+like its type, size and position (every control fits inside a rectangle,
+also rectangles can be made to fit into other rectangles in various
+ways, you can even make a control, like a text editor fit inside the
+rectangle defined by a special spacing character in a string, and every
+string fits inside a rectangle, there's no end to what can be made to
+fit inside what all while remaining sensible), which other element its
+position is linked to, and in the case of text editors and knobs all the
+specific data, including the undo states. So there's a lot that you
+don't really have to worry about thanks to how much it takes care of
+things for you. But the `layout` structure is initialy empty, the
+`make_gui_layout()` initialises it based on the markup contained in the
+`layout_src` string array. Here we see that element #0 has an undefined
+type but is used to define the window that contains any other element.
+Element #10 is a knob, labeled Gain, with values between 0.01 and 1000,
+the default being 1, all on a logarithmic scale. The position, dimension
+and offset that follow are a bit harder to explain, but you kind of
+don't have to worry about this if you use the layout editing toolbar. To
+do so you can include the line `gui_layout_edit_toolbar(1);` after
+`image_viewer();` in the main loop, and inside the program you can
+zoom-scroll to look for it (it's outside of the screen, to the bottom
+left).
+
+That toolbar is a bit rough around the edges, but it mostly works. Since
+it's some of my oldest GUI code it's also not my best, for instance you
+have to press Return for values to be taken into account. First you'll
+probably want to pin it so that it follows you around. Once you've
+selected which layout you want to edit (ours is "Image viewer" as
+defined in the `make_gui_layout()` call), you can switch to editing mode
+by pressin F6 on your keyboard, then you can select existing interface
+elements, see their properties in the toolbar, drag them around to a new
+position and resize them. You can also create new ones, either by
+duplicating the selected one, or using the drop down menu. Just be sure
+to set `Elem ID` first if you care about having sensible IDs. If you do
+something you shouldn't the toolbar will kindly let you know by crashing
+everything. When you're done creating and editing things, unpin the
+toolbar and zoom on the bottom section. It shows you the whole markup
+for the layout which is generated automatically, and since it's one of
+my standard text editors you can Ctrl-Z back in time and press
+`Apply Markup` to revert changes. But mostly you'll want to not touch
+anything except the button that tells you to copy it as a C literal to
+the clipboard, and then you can paste it in your code between the `{ }`
+brackets to have your new layout saved there. That's all you have to do,
+you do your edits, press the copying button, then paste the whole thing
+into your code as a replacement of the older block of markup.
+
+And finally to help you massively by doing most of the work for you you
+should press `Generate C code` then select the generated code above and
+copy it (with Ctrl-A and Ctrl-C), then paste it in your C code wherever
+you see fit as a template filed in with the correct IDs filled in and
+the correct function calls depending on the type of control, as well as
+some usually good default values, and some variables that you definitely
+should rename. Most of these functions have return values that tell you
+somehow if anything's just changed, in case you need that. I haven't
+documented what control returns which value, but you can figure it out
+from the rouziclib code, mostly in `text/edit.c` and `gui/controls.c`.
+https://github.com/Photosounder/rouziclib/blob/master/quick_reference.h[quick_reference.h]
+is a good reference for typical code you might need, mostly the section
+titled "Controls from text layout".
+
+So in the case of the one control we have, we have the value, `gain`,
+which is a static double that's initialised with a NAN. When
+`ctrl_knob()` sees that the value is a NAN it sets it to the default
+value specified in the markup, that's why you should always initialise
+knob values with a NAN. And that's it really, the value `gain` is
+updated a a result of calling `ctrl_knob_fromlayout()` and you can just
+use that value, or even change it, that's not a problem.
+
+==== The image and its placement
+
+The image, as a tiled mipmap called `image_mm`, is loaded when `path` is
+set to something, and displayed by `blit_mipmap_in_rect()`. The only
+question is how do we know where to draw it? First we define a rectangle
+in world coordinates, which is the coordinates of that quasi-infinite
+plane that we put things on, and then `sc_rect()` turns it into some
+pixel positions on the screen. We could create a rectangle element in
+the layout at let's say ID 20 and then get that rectangle by calling
+`gui_layout_elem_comp_area_os(&layout, 20, XY0)`, but we need the
+rectangle to fit the window and whatever aspect ratio it currently has.
+`zc` is the global structure that contains information about the window
+and all that world coordinate stuff. `zc.limit_u` tells us what is the
+half-size of the window at the default viewing coordinates, so if
+`zc.limit_u` is equivalent to 16 , 9 (as xy coordinates) then that means
+that the world coordinates of that default viewing rectangle goes from
+-16, -9 to 16 , 9. I almost always use `make_rect_off()` to define a
+rectangle, so I'll explain it. The first parameter is the position, here
+0 , 0, so we use the macro `XY0`. Then comes the dimension, which is
+`zc.limit_u` times 2, and then the offset, which is where the position,
+as a point, exists in relation to the rest of the rectangle. An offset
+of 0 , 0 would mean that the given position is also the position of the
+lower left corner of the rectangle, 1 , 1 the upper right corner, and
+therefore 0.5 , 0.5 gives us the centre. So this creates a rectangle of
+the size we need, centred around coordinate 0 , 0. Then
+`blit_mipmap_in_rect()` just figures out how to fit the image inside
+that rectangle without deforming it.
