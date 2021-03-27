@@ -1,14 +1,7 @@
 #include "rl.h"
 
-void image_viewer()
+void image_viewer_options_window(rect_t parent_area, int *diag_on, double *gain)
 {
-	int i;
-	static int init=1;
-	static char *path=NULL, dir_path[PATH_MAX*4]={0}, **filepath=NULL;
-	static int file_index=0, filecount=0;
-	static mipmap_t image_mm={0};
-	static double gain=NAN;
-
 	// GUI layout (so far just one knob under the image)
 	static gui_layout_t layout={0};
 	const char *layout_src[] = {
@@ -16,8 +9,28 @@ void image_viewer()
 		"elem 10", "type knob", "label Gain", "knob 0.01 1 1000 log", "pos	0;6	-3", "dim	2", "off	0	0", "",
 	};
 
-	gui_layout_init_pos_scale(&layout, xy(zc.limit_u.x+0.25, 8.), 0.7, XY0, 0);
+	gui_layout_init_pos_scale(&layout, XY0, 1., XY0, 0);
 	make_gui_layout(&layout, layout_src, sizeof(layout_src)/sizeof(char *), "Image viewer");
+
+	// GUI window
+	static flwindow_t window={0};
+	flwindow_init_defaults(&window);
+	window.bg_opacity = 0.94;
+	window.shadow_strength = 0.5*window.bg_opacity;
+	draw_dialog_window_fromlayout(&window, diag_on, &parent_area, &layout, 0);	// this handles and displays the window that contains the control
+
+	// GUI controls
+	ctrl_knob_fromlayout(gain, &layout, 10);			// this both displays the control and updates the gain value
+}
+
+void image_viewer()
+{
+	int i;
+	static int init=1, diag_on=0;
+	static char *path=NULL, dir_path[PATH_MAX*4]={0}, **filepath=NULL;
+	static int file_index=0, filecount=0;
+	static mipmap_t image_mm={0};
+	static double gain=NAN;
 
 	// Getting an image path from the command line
 	if (init)
@@ -91,12 +104,7 @@ void image_viewer()
 	drawq_bracket_close(DQB_ADD);
 
 	// GUI window
-	static flwindow_t window={0};
-	flwindow_init_defaults(&window);
-	draw_dialog_window_fromlayout(&window, NULL, NULL, &layout, 0);	// this handles and displays the window that contains the control
-
-	// GUI controls
-	ctrl_knob_fromlayout(&gain, &layout, 10);			// this both displays the control and updates the gain value
+	window_register(1, image_viewer_options_window, make_rect_off(xy(zc.limit_u.x+0.25, 8.), xy(3., 3.), xy(0., 1.)), &diag_on, 1, &gain);
 }
 
 void main_loop()
@@ -109,12 +117,8 @@ void main_loop()
 	{
 		init = 0;
 
-		#ifdef RL_OPENCL
-		fb.use_drawq = 1;
-		#else
-		fb.use_drawq = 0;
-		#endif
-		fb.r.use_frgb = fb.use_drawq;
+		fb.use_drawq = 1;	// OpenCL draw queue
+
 		sdl_graphics_init_autosize("Mini rouziclib Picture Viewer", SDL_WINDOW_RESIZABLE, 0);
 		SDL_MaximizeWindow(fb.window);
 
@@ -160,6 +164,8 @@ void main_loop()
 		//-------------input-----------------
 
 		image_viewer();
+
+		window_manager();
 
 		mousecursor_logic_and_draw();
 
