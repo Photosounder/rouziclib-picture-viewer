@@ -129,7 +129,7 @@ void main_loop()
 		font = remake_font("vector_type/type_index.txt", font);		// when the type_index file is not found it just defaults to the builtin fallback simplified font
 
 		#ifdef __EMSCRIPTEN__
-		SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#document");
+		SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#screen");
 		#endif
 	}
 
@@ -165,6 +165,7 @@ void main_loop()
 
 		image_viewer();
 
+		gui_layout_edit_toolbar(mouse.key_state[RL_SCANCODE_F6]==2);
 		window_manager();
 
 		mousecursor_logic_and_draw();
@@ -181,9 +182,7 @@ int main(int argc, char *argv[])
 	main_loop();
 	#endif
 
-	SDL_DestroyRenderer(fb.renderer);
-	SDL_DestroyWindow(fb.window);
-	SDL_Quit();
+	sdl_quit_actions();
 
 	return 0;
 }
