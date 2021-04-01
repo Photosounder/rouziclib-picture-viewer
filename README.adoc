@@ -121,22 +121,6 @@ undo/redo (Ctrl-Z to undo, Ctrl-Y or Shift-Ctrl-Z to redo). Not that this is
 really needed for this humble brightness control, but it's there everytime you
 make a knob control.
 
-You might notice the very minimalistic vector typeface used there, it's
-minimalistic because it's rouziclib's builtin fallback typeface, because it's
-always nice to be able to display text without having to do anything for it.
-The program actually first tries to load the more detailed and extensive
-version of my
-https://github.com/Photosounder/rouziclib/tree/master/vector_type[vector_type],
-but since it's not there to be found (unless you put it there) then it defaults
-to
-https://github.com/Photosounder/rouziclib/blob/master/rouziclib/vector_type/fallback_font.h[this
-version] contained in a header. In Photosounder 1.10 I pack the whole typeface
-(minus the CJK data) into a single
-https://github.com/Photosounder/rouziclib/blob/master/vector_type/header/vector_type_fileball.h[C
-header] that contains a compressed "fileball" (like a tarball except nicer and
-simpler) which extracts all the files where they're expected.  More on that
-when I do a fancier version of this viewer.
-
 === Coding aspects
 
 ==== Dependencies and compilation

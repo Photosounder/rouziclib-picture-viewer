@@ -126,7 +126,7 @@ void main_loop()
 		calc_screen_limits(&zc);
 		mouse = init_mouse();
 
-		font = remake_font("vector_type/type_index.txt", font);		// when the type_index file is not found it just defaults to the builtin fallback simplified font
+		vector_font_load_from_header();
 
 		#ifdef __EMSCRIPTEN__
 		SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#screen");
