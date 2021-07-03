@@ -111,7 +111,6 @@ void main_loop()
 {
 	static int exit_flag=0, init=1;
 	SDL_Event event;
-	static uint32_t td=0;
 
 	if (init)
 	{
