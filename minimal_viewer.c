@@ -1,6 +1,6 @@
 #include "rl.h"
 
-void image_viewer_options_window(rect_t parent_area, int *diag_on, double *gain)
+void image_viewer_options_window(double *gain)
 {
 	// GUI layout (so far just one knob under the image)
 	static gui_layout_t layout={0};
@@ -17,7 +17,7 @@ void image_viewer_options_window(rect_t parent_area, int *diag_on, double *gain)
 	flwindow_init_defaults(&window);
 	window.bg_opacity = 0.94;
 	window.shadow_strength = 0.5*window.bg_opacity;
-	draw_dialog_window_fromlayout(&window, diag_on, &parent_area, &layout, 0);	// this handles and displays the window that contains the control
+	draw_dialog_window_fromlayout(&window, cur_wind_on, &cur_parent_area, &layout, 0);	// this handles and displays the window that contains the control
 
 	// GUI controls
 	ctrl_knob_fromlayout(gain, &layout, 10);			// this both displays the control and updates the gain value
@@ -104,7 +104,7 @@ void image_viewer()
 	drawq_bracket_close(DQB_ADD);
 
 	// GUI window
-	window_register(1, image_viewer_options_window, make_rect_off(xy(zc.limit_u.x+0.25, 8.), xy(3., 3.), xy(0., 1.)), &diag_on, 1, &gain);
+	window_register(1, image_viewer_options_window, NULL, make_rect_off(xy(zc.limit_u.x+0.25, 8.), xy(3., 3.), xy(0., 1.)), &diag_on, 1, &gain);
 }
 
 void main_loop()
