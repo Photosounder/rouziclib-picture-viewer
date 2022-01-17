@@ -109,7 +109,13 @@ void image_viewer()
 
 void main_loop()
 {
-	rl_sdl_standard_main_loop(1, "Mini rouziclib Picture Viewer", 1, image_viewer);
+	sdl_main_param_t param={0};
+	param.window_name = "Mini rouziclib Picture Viewer";
+	param.func = image_viewer;
+	param.use_drawq = 1;
+	param.maximise_window = 1;
+	param.gui_toolbar = 1;
+	rl_sdl_standard_main_loop(param);
 }
 
 int main(int argc, char *argv[])
